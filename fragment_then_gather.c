@@ -45,11 +45,8 @@ int main(int argc, char** argv)
 
 		for (int i = 1; i < NUMPROCS; i++)
 		{
-			Array* temp = instanciate_array(SUBARRAYS_SIZE);
-			fill_array_with_given_values(temp, array->array + i * SUBARRAYS_SIZE);
-
-			MPI_Send((void*) temp->array,
-					 temp->size,
+			MPI_Send((void*) (array->array + i * SUBARRAYS_SIZE),
+					 SUBARRAYS_SIZE,
 					 MPI_INT,
 					 i,
 					 i,
@@ -57,7 +54,7 @@ int main(int argc, char** argv)
 
 			print_message_header();
 			printf("Just sent the following array to process %d : ", i);
-			print_array(temp);
+			print_array_part(array, i * SUBARRAYS_SIZE, SUBARRAYS_SIZE);
 		}
 	}
 
