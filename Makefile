@@ -1,6 +1,6 @@
 CC=mpicc
 RUN=mpirun
-AGENTS=4
+AGENTS?=4
 BUILD_DIR=build
 
 CFLAGS=-Wall -std=gnu99
