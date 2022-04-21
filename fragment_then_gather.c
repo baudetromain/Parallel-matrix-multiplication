@@ -19,6 +19,8 @@ void fill_array_with_given_values(Array*, int*);
 void print_array(Array*);
 void print_array_part(Array*, int, int);
 
+int compute_sum(Array*);
+
 int ARRAY_SIZE, SUBARRAYS_SIZE;
 int RANK, NUMPROCS;
 
@@ -34,6 +36,8 @@ int main(int argc, char** argv)
 
 	SUBARRAYS_SIZE = ARRAY_SIZE / NUMPROCS;
 
+	srand(time(0));
+
 	if (RANK == 0)
 	{
 		Array* array = instanciate_array(ARRAY_SIZE);
@@ -42,6 +46,10 @@ int main(int argc, char** argv)
 		print_message_header();
 		printf("Just generated the array : ");
 		print_array(array);
+
+		int sum = compute_sum(array);
+		print_message_header();
+		printf("The sum of the elements (computed in sequential) is %d\n", sum);
 
 		for (int i = 1; i < NUMPROCS; i++)
 		{
@@ -56,6 +64,43 @@ int main(int argc, char** argv)
 			printf("Just sent the following array to process %d : ", i);
 			print_array_part(array, i * SUBARRAYS_SIZE, SUBARRAYS_SIZE);
 		}
+
+		Array* first_values = instanciate_array(SUBARRAYS_SIZE);
+		fill_array_with_given_values(first_values, array->array);
+
+		free_array(array);
+
+		print_message_header();
+		printf("My own list is : ");
+		print_array(first_values);
+
+		sum = compute_sum(first_values);
+		print_message_header();
+		printf("Just computed the sum of my list : the result is %d\n", sum);
+
+		free_array(first_values);
+
+		for (int i = 1; i < NUMPROCS; i++)
+		{
+			int temp;
+			MPI_Status* status = malloc(sizeof(MPI_Status));
+
+			MPI_Recv((void*) &temp,
+					 1,
+					 MPI_INT,
+					 i,
+					 i * 2,
+					 MPI_COMM_WORLD,
+					 status);
+
+			print_message_header();
+			printf("just received the sum from thread %d : the result is %d\n", i, temp);
+
+			sum += temp;
+		}
+
+		print_message_header();
+		printf("The final result is %d !\n", sum);
 	}
 
 	else
@@ -74,6 +119,20 @@ int main(int argc, char** argv)
 		print_message_header();
 		printf("just received the following array from thread %d : ", 0);
 		print_array(received_values);
+
+		int sum = compute_sum(received_values);
+
+		free_array(received_values);
+
+		MPI_Send((void*) &sum,
+				 1,
+				 MPI_INT,
+				 0,
+				 RANK * 2,
+				 MPI_COMM_WORLD);
+
+		print_message_header();
+		printf("Just sent back the sum (%d) to process %d\n", sum, 0);
 	}
 
 	MPI_Finalize();
@@ -133,6 +192,8 @@ Array* instanciate_array(int size)
 	Array* array = (Array*) malloc(sizeof(Array));
 	array->array = (int*) malloc(sizeof(int) * size);
 	array->size = size;
+
+	return array;
 }
 
 void free_array(Array* array)
@@ -185,4 +246,16 @@ void print_array_part(Array* array, int offset, int size)
 	}
 
 	printf("\n");
+}
+
+int compute_sum(Array* array)
+{
+	int sum = 0;
+
+	for(int i = 0; i < array->size; i++)
+	{
+		sum += *(array->array + i);
+	}
+
+	return sum;
 }
