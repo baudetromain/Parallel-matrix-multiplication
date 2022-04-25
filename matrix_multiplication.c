@@ -74,7 +74,8 @@ int get_matrix_value(Matrix* matrix, int height, int width)
 		exit(1);
 	}
 
-	return * ( * ( matrix->values + height ) + width );
+	return matrix->values[height][width];
+	//return *(*(matrix->values + height) + width);
 }
 
 void set_matrix_value(Matrix* matrix, int height, int width, int value)

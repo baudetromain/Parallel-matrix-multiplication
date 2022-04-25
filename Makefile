@@ -8,8 +8,8 @@ CFLAGS=-Wall -std=gnu99
 SRC=$(wildcard *.c)
 EXE=$(SRC:.c=)
 
-TO_RUN?=hello_world
-ARGS?=
+TO_RUN?=fragment_then_gather
+ARGS?=20
 
 all: $(EXE)
 
