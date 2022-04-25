@@ -94,7 +94,8 @@ void set_matrix_value(Matrix* matrix, int height, int width, int value)
 		exit(1);
 	}
 
-	* ( * ( matrix->values + height ) + width ) = value;
+	matrix->values[height][width] = value;
+	//* ( * ( matrix->values + height ) + width ) = value;
 }
 
 void fill_matrix_with_random_values(Matrix* matrix, int lower_bound, int upper_bound)
